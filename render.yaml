@@ -43,6 +43,50 @@ services:
         value: google
       - key: DERIVER_MODEL
         value: gemini-2.5-flash-lite
+      - key: DIALECTIC_LEVELS__minimal__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__minimal__MODEL
+        value: gemini-2.5-flash-lite
+      - key: DIALECTIC_LEVELS__minimal__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__minimal__MAX_TOOL_ITERATIONS
+        value: 1
+      - key: DIALECTIC_LEVELS__minimal__TOOL_CHOICE
+        value: any
+      - key: DIALECTIC_LEVELS__low__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__low__MODEL
+        value: gemini-2.5-flash-lite
+      - key: DIALECTIC_LEVELS__low__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__low__MAX_TOOL_ITERATIONS
+        value: 5
+      - key: DIALECTIC_LEVELS__low__TOOL_CHOICE
+        value: any
+      - key: DIALECTIC_LEVELS__medium__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__medium__MODEL
+        value: gemini-2.5-flash
+      - key: DIALECTIC_LEVELS__medium__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__medium__MAX_TOOL_ITERATIONS
+        value: 2
+      - key: DIALECTIC_LEVELS__high__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__high__MODEL
+        value: gemini-2.5-flash
+      - key: DIALECTIC_LEVELS__high__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__high__MAX_TOOL_ITERATIONS
+        value: 4
+      - key: DIALECTIC_LEVELS__max__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__max__MODEL
+        value: gemini-2.5-flash
+      - key: DIALECTIC_LEVELS__max__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__max__MAX_TOOL_ITERATIONS
+        value: 10
       - key: SUMMARY_PROVIDER
         value: google
       - key: SUMMARY_MODEL
@@ -92,6 +136,50 @@ services:
         value: google
       - key: DERIVER_MODEL
         value: gemini-2.5-flash-lite
+      - key: DIALECTIC_LEVELS__minimal__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__minimal__MODEL
+        value: gemini-2.5-flash-lite
+      - key: DIALECTIC_LEVELS__minimal__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__minimal__MAX_TOOL_ITERATIONS
+        value: 1
+      - key: DIALECTIC_LEVELS__minimal__TOOL_CHOICE
+        value: any
+      - key: DIALECTIC_LEVELS__low__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__low__MODEL
+        value: gemini-2.5-flash-lite
+      - key: DIALECTIC_LEVELS__low__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__low__MAX_TOOL_ITERATIONS
+        value: 5
+      - key: DIALECTIC_LEVELS__low__TOOL_CHOICE
+        value: any
+      - key: DIALECTIC_LEVELS__medium__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__medium__MODEL
+        value: gemini-2.5-flash
+      - key: DIALECTIC_LEVELS__medium__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__medium__MAX_TOOL_ITERATIONS
+        value: 2
+      - key: DIALECTIC_LEVELS__high__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__high__MODEL
+        value: gemini-2.5-flash
+      - key: DIALECTIC_LEVELS__high__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__high__MAX_TOOL_ITERATIONS
+        value: 4
+      - key: DIALECTIC_LEVELS__max__PROVIDER
+        value: google
+      - key: DIALECTIC_LEVELS__max__MODEL
+        value: gemini-2.5-flash
+      - key: DIALECTIC_LEVELS__max__THINKING_BUDGET_TOKENS
+        value: 0
+      - key: DIALECTIC_LEVELS__max__MAX_TOOL_ITERATIONS
+        value: 10
       - key: SUMMARY_PROVIDER
         value: google
       - key: SUMMARY_MODEL
