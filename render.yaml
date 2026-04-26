@@ -1,0 +1,118 @@
+previews:
+  generation: manual
+
+services:
+  - type: web
+    name: delegento-honcho-api
+    runtime: docker
+    repo: https://github.com/dissorial/honcho-self-hosting
+    plan: standard
+    region: oregon
+    branch: main
+    autoDeployTrigger: commit
+    dockerCommand: sh docker/entrypoint.sh
+    healthCheckPath: /health
+    maxShutdownDelaySeconds: 60
+    envVars:
+      - key: DB_CONNECTION_URI
+        fromDatabase:
+          name: delegento-honcho-db
+          property: connectionString
+      - key: CACHE_URL
+        fromService:
+          type: keyvalue
+          name: delegento-honcho-kv
+          property: connectionString
+      - key: CACHE_ENABLED
+        value: true
+      - key: AUTH_USE_AUTH
+        value: true
+      - key: AUTH_JWT_SECRET
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: VECTOR_STORE_TYPE
+        value: pgvector
+      - key: VECTOR_STORE_MIGRATED
+        value: false
+      - key: LLM_GEMINI_API_KEY
+        sync: false
+      - key: LLM_EMBEDDING_PROVIDER
+        value: gemini
+      - key: DERIVER_PROVIDER
+        value: google
+      - key: DERIVER_MODEL
+        value: gemini-2.5-flash-lite
+      - key: SUMMARY_PROVIDER
+        value: google
+      - key: SUMMARY_MODEL
+        value: gemini-2.5-flash
+      - key: DREAM_PROVIDER
+        value: google
+      - key: DREAM_MODEL
+        value: gemini-2.5-flash
+
+  - type: worker
+    name: delegento-honcho-deriver
+    runtime: docker
+    repo: https://github.com/dissorial/honcho-self-hosting
+    plan: standard
+    region: oregon
+    branch: main
+    autoDeployTrigger: commit
+    dockerCommand: python -m src.deriver
+    maxShutdownDelaySeconds: 60
+    envVars:
+      - key: DB_CONNECTION_URI
+        fromDatabase:
+          name: delegento-honcho-db
+          property: connectionString
+      - key: CACHE_URL
+        fromService:
+          type: keyvalue
+          name: delegento-honcho-kv
+          property: connectionString
+      - key: CACHE_ENABLED
+        value: true
+      - key: AUTH_USE_AUTH
+        value: true
+      - key: AUTH_JWT_SECRET
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: VECTOR_STORE_TYPE
+        value: pgvector
+      - key: VECTOR_STORE_MIGRATED
+        value: false
+      - key: LLM_GEMINI_API_KEY
+        sync: false
+      - key: LLM_EMBEDDING_PROVIDER
+        value: gemini
+      - key: DERIVER_PROVIDER
+        value: google
+      - key: DERIVER_MODEL
+        value: gemini-2.5-flash-lite
+      - key: SUMMARY_PROVIDER
+        value: google
+      - key: SUMMARY_MODEL
+        value: gemini-2.5-flash
+      - key: DREAM_PROVIDER
+        value: google
+      - key: DREAM_MODEL
+        value: gemini-2.5-flash
+
+  - type: keyvalue
+    name: delegento-honcho-kv
+    plan: starter
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+
+databases:
+  - name: delegento-honcho-db
+    plan: basic-256mb
+    region: oregon
+    databaseName: delegento_honcho
+    user: delegento_honcho
+    postgresMajorVersion: "17"
+    ipAllowList: []

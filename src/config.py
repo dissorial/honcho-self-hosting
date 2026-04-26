@@ -16,9 +16,9 @@ from pydantic_settings import (
 
 from src.utils.types import SupportedProviders
 
-# Load .env file for local development.
-# Make sure this is called before AppSettings is instantiated if you rely on .env for AppSettings construction.
-load_dotenv(override=True)
+# Load .env file for local development, but never let it override real
+# environment variables such as Fly secrets or one-off shell overrides.
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +172,13 @@ class DBSettings(HonchoSettings):
     POOL_USE_LIFO: bool = True
     SQL_DEBUG: bool = False
     TRACING: bool = False
+
+    @field_validator("CONNECTION_URI", mode="before")
+    @classmethod
+    def _normalize_sqlalchemy_postgres_uri(cls, value: Any) -> Any:
+        if isinstance(value, str) and value.startswith("postgresql://"):
+            return value.replace("postgresql://", "postgresql+psycopg://", 1)
+        return value
 
 
 class AuthSettings(HonchoSettings):
