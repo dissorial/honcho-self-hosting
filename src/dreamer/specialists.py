@@ -312,7 +312,7 @@ class DeductionSpecialist(BaseSpecialist):
         return 8192
 
     def get_max_iterations(self) -> int:
-        return 12
+        return 6
 
     def build_system_prompt(
         self, observed: str, *, peer_card_enabled: bool = True
@@ -344,35 +344,36 @@ Keep it concise (max 40 entries), deduplicated, and current."""
 
 ## YOUR JOB
 
-Create deductive observations by finding logical implications in what's already known. Think like a detective connecting evidence.
+Create deductive observations ONLY when they add non-obvious information. A deduction is worthwhile only if knowing the premise alone would not make the conclusion obvious to a reader.
 
 ## PHASE 1: DISCOVERY
 
-Explore what's actually in memory. Use these tools freely:
-- `get_recent_observations` - See what's been learned recently
+Explore what's in memory using these tools:
+- `get_recent_observations` - Recent learnings
 - `search_memory` - Search for specific topics
-- `search_messages` - See actual conversation content
+- `search_messages` - Actual conversation content
 
 Spend a few tool calls understanding the landscape before creating anything.
 
 ## PHASE 2: ACTION
 
-Once you understand what's there, create observations and clean up:
+### Knowledge Updates (HIGHEST PRIORITY)
+When the same fact has different values at different times, the newer value supersedes:
+- "monthly budget is $50k" [March] → "monthly budget is $30k" [May] = knowledge update (delete the old one)
+- Rule: if both statements describe the same attribute or quantity, it is an update. If they describe different aspects that conflict, it is a contradiction.
 
-### Knowledge Updates (HIGH PRIORITY)
-When the same fact has different values at different times:
-- "meeting Tuesday" [old] → "meeting moved to Thursday" [new]
-- Create a deductive update observation
-- DELETE the outdated observation immediately
+### Non-obvious Logical Implications
+Extract implicit information that a reader would not automatically infer:
+- "manages a team of 8 across NYC and London" → "works across multiple timezones"
+- "has kids ages 5 and 8" → "has school-age children" (useful for scheduling context)
 
-### Logical Implications
-Extract implicit information:
-- "works as SWE at Google" → "has software engineering skills", "employed in tech"
-- "has kids ages 5 and 8" → "is a parent", "has school-age children"
+DO NOT create deductions that merely restate the premise in different words:
+- "works as SWE at Google" → "has software engineering skills" — SKIP, this is obvious
+- "lives in NYC" → "lives in the US" — SKIP, this is trivially implied
 
 ### Contradictions
-When statements can't both be true (not just updates), flag them:
-- "I love coffee" vs "I hate coffee" → contradiction observation
+Flag only when statements genuinely cannot both be true AND are not simply time-ordered updates:
+- "I'm vegetarian" + "I had the steak last night" → contradiction
 {peer_card_section}
 
 ## CREATING OBSERVATIONS
@@ -390,11 +391,11 @@ When statements can't both be true (not just updates), flag them:
 
 ## RULES
 
-1. Don't explain your reasoning - just call tools
-2. Create observations based on what you ACTUALLY FIND, not what you expect
-3. Always include source_ids linking to the observations you're synthesizing
-4. Delete outdated observations - don't leave duplicates
-5. Quality over quantity - fewer good deductions beat many weak ones"""
+1. Quality bar: would knowing this deduction help an AI assistant serve this person better? If not, skip it.
+2. Always include source_ids linking to the observations you're synthesizing.
+3. Delete outdated observations when you create a knowledge update.
+4. Prefer 2-4 high-value deductions over 8 weak ones.
+5. If you find nothing worth deducing after exploring, that's fine — end early."""
 
     def build_user_prompt(
         self,
@@ -468,7 +469,7 @@ class InductionSpecialist(BaseSpecialist):
 
 After identifying patterns, only update the peer card for durable profile-level traits/preferences:
 - `TRAIT: Analytical thinker`
-- `TRAIT: Tends to reschedule when stressed`
+- `PREFERENCE: Prefers budget changes summarized with rationale`
 - `PREFERENCE: Prefers detailed explanations`
 
 Do NOT add temporary patterns, episode-specific conclusions, or reasoning summaries.
@@ -479,7 +480,7 @@ Keep it concise (max 40 entries)."""
 
 ## YOUR JOB
 
-Create inductive observations by finding patterns across multiple observations. Think like a psychologist identifying behavioral tendencies.
+Identify recurring patterns in how {observed} works, communicates, and makes decisions. Focus on patterns that would help an AI assistant work with them more effectively.
 
 ## PHASE 1: DISCOVERY
 
@@ -492,24 +493,29 @@ Look at BOTH explicit observations AND deductive ones. Patterns often emerge fro
 
 ## PHASE 2: ACTION
 
-Create inductive observations when you see patterns:
+Create inductive observations when you see clear patterns (3+ supporting observations preferred):
 
-### Behavioral Patterns
-- "Tends to reschedule meetings when stressed"
-- "Makes decisions after consulting with partner"
-- "Projects follow: enthusiasm → doubt → completion"
+### Work Patterns (MOST VALUABLE)
+- "Prefers to review analytics dashboards Monday morning before making budget decisions"
+- "Delegates implementation details but wants to approve customer-facing copy"
+- "Typically responds to budget questions with a cap and an escalation path"
 
-### Preferences
-- "Prefers morning meetings"
-- "Likes detailed technical explanations"
+### Communication Preferences
+- "Prefers bullet-point summaries over narrative explanations"
+- "Asks for data sources when presented with claims"
 
-### Personality Traits
-- "Generally optimistic about outcomes"
-- "Detail-oriented in planning"
+### Decision Patterns
+- "Consults with [person] before approving spend over $5k"
+- "Revisits decisions after new data comes in rather than committing early"
 
 ### Temporal Patterns
-- "Career goals have remained consistent"
-- "Living situation changes frequently"
+- "Campaign reviews happen at the start of each month"
+- "Engagement drops on Fridays — messages sent then often go unanswered until Monday"
+
+AVOID vague personality labels that do not lead to actionable behavior:
+- "Generally optimistic" — too vague, skip
+- "Detail-oriented" — too generic, skip
+- "Tends to be stressed on Mondays" — unobservable from text, skip
 {peer_card_section}
 
 ## CREATING OBSERVATIONS
@@ -529,11 +535,12 @@ Create inductive observations when you see patterns:
 
 ## RULES
 
-1. Minimum 2 source observations required - patterns need evidence
-2. Don't just restate a single fact as a pattern
-3. Confidence based on evidence count: 2=low, 3-4=medium, 5+=high
-4. Look for HOW things change over time, not just static facts
-5. Include source_ids - always link back to evidence"""
+1. Minimum 3 source observations strongly preferred. 2 is acceptable only if both are highly specific and mutually reinforcing.
+2. Confidence: 2-3 sources = low, 4-5 = medium, 6+ = high.
+3. Low-confidence patterns should only be created if they are actionable despite uncertainty.
+4. Focus on patterns an AI assistant could ACT on — skip observations that are merely interesting.
+5. Include source_ids — always link back to evidence.
+6. If nothing rises to pattern level, end early. No pattern is better than a forced one."""
 
     def build_user_prompt(
         self,
@@ -554,7 +561,7 @@ Start with `get_recent_observations`."""
 
         return f"""{peer_card_context}Explore the observation space and identify patterns.
 
-Remember: patterns need 2+ sources. Look for tendencies, preferences, and behavioral regularities.
+Remember: patterns need evidence from multiple sources, with 3+ supporting observations preferred. Look for actionable work, communication, and decision patterns.
 
 Go."""
 

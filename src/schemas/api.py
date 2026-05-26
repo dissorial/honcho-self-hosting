@@ -474,6 +474,18 @@ class ConclusionQuery(BaseModel):
         default=None,
         description="Additional filters to apply",
     )
+    temporal_decay_factor: float = Field(
+        default=0.01,
+        ge=0.0,
+        le=1.0,
+        description="Recency penalty per document age day for pgvector conclusion ranking",
+    )
+    temporal_decay_floor: float = Field(
+        default=0.75,
+        gt=0.0,
+        le=1.0,
+        description="Minimum temporal multiplier so recency cannot overwhelm semantic relevance",
+    )
 
 
 class ConclusionCreate(BaseModel):

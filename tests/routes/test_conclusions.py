@@ -576,6 +576,60 @@ class TestConclusionRoutes:
         assert response.status_code == 422
 
     @pytest.mark.asyncio
+    async def test_query_conclusions_validates_temporal_decay_parameters(
+        self,
+        client: TestClient,
+        db_session: AsyncSession,
+        sample_data: tuple[Workspace, Peer],
+    ):
+        """Test query conclusions validates temporal scoring parameters"""
+        test_workspace, test_peer = sample_data
+
+        test_peer2 = models.Peer(
+            name=str(generate_nanoid()), workspace_name=test_workspace.name
+        )
+        db_session.add(test_peer2)
+        await db_session.flush()
+
+        test_session = models.Session(
+            name=str(generate_nanoid()), workspace_name=test_workspace.name
+        )
+        db_session.add(test_session)
+        await db_session.commit()
+
+        response = client.post(
+            f"/v3/workspaces/{test_workspace.name}/conclusions/query",
+            json={
+                "query": "test",
+                "temporal_decay_factor": -0.01,
+                "temporal_decay_floor": 0.75,
+                "filters": {
+                    "observer": test_peer.name,
+                    "observed": test_peer2.name,
+                    "session_id": test_session.name,
+                },
+            },
+        )
+
+        assert response.status_code == 422
+
+        response = client.post(
+            f"/v3/workspaces/{test_workspace.name}/conclusions/query",
+            json={
+                "query": "test",
+                "temporal_decay_factor": 0.01,
+                "temporal_decay_floor": 0,
+                "filters": {
+                    "observer": test_peer.name,
+                    "observed": test_peer2.name,
+                    "session_id": test_session.name,
+                },
+            },
+        )
+
+        assert response.status_code == 422
+
+    @pytest.mark.asyncio
     async def test_delete_conclusion_success(
         self,
         client: TestClient,

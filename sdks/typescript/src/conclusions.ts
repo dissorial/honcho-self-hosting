@@ -20,6 +20,13 @@ export interface ConclusionCreateParams {
   sessionId?: string | Session
 }
 
+export interface ConclusionQueryOptions {
+  /** Recency penalty per document age day. Defaults to the server value. */
+  temporalDecayFactor?: number
+  /** Minimum temporal multiplier. Defaults to the server value. */
+  temporalDecayFloor?: number
+}
+
 /**
  * A conclusion from Honcho's reasoning system.
  *
@@ -123,6 +130,8 @@ export class ConclusionScope {
     top_k?: number
     distance?: number
     filters?: Record<string, unknown>
+    temporal_decay_factor?: number
+    temporal_decay_floor?: number
   }): Promise<ConclusionResponse[]> {
     await this._ensureWorkspace()
     return this._http.post<ConclusionResponse[]>(
@@ -231,7 +240,8 @@ export class ConclusionScope {
   async query(
     query: string,
     topK: number = 10,
-    distance?: number
+    distance?: number,
+    options: ConclusionQueryOptions = {}
   ): Promise<Conclusion[]> {
     const filters: Record<string, unknown> = {
       observer_id: this.observer,
@@ -243,6 +253,8 @@ export class ConclusionScope {
       top_k: topK,
       distance,
       filters,
+      temporal_decay_factor: options.temporalDecayFactor,
+      temporal_decay_floor: options.temporalDecayFloor,
     })
 
     return (response ?? []).map((item) => Conclusion.fromApiResponse(item))

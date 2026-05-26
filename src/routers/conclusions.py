@@ -120,6 +120,8 @@ async def query_conclusions(
         filters=body.filters,
         max_distance=body.distance,
         top_k=body.top_k,
+        temporal_decay_factor=body.temporal_decay_factor,
+        temporal_decay_floor=body.temporal_decay_floor,
     )
     return [schemas.Conclusion.model_validate(doc) for doc in documents]
 

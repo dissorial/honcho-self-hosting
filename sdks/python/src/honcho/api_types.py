@@ -453,6 +453,8 @@ class ConclusionQueryParams(BaseModel):
     top_k: int = Field(default=10, ge=1, le=100)
     distance: float | None = Field(default=None, ge=0.0, le=1.0)
     filters: dict[str, Any] | None = None
+    temporal_decay_factor: float = Field(default=0.01, ge=0.0, le=1.0)
+    temporal_decay_floor: float = Field(default=0.75, gt=0.0, le=1.0)
 
 
 # ==============================================================================

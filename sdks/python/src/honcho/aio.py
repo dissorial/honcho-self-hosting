@@ -1462,6 +1462,9 @@ class ConclusionScopeAio:
         query: str,
         top_k: int = 10,
         distance: float | None = None,
+        *,
+        temporal_decay_factor: float | None = None,
+        temporal_decay_floor: float | None = None,
     ) -> list[Conclusion]:
         """Semantic search for conclusions asynchronously."""
         await self._scope._honcho._ensure_workspace_async()
@@ -1477,6 +1480,10 @@ class ConclusionScopeAio:
         }
         if distance is not None:
             body["distance"] = distance
+        if temporal_decay_factor is not None:
+            body["temporal_decay_factor"] = temporal_decay_factor
+        if temporal_decay_floor is not None:
+            body["temporal_decay_floor"] = temporal_decay_floor
 
         data = await self._scope._honcho._async_http_client.post(
             routes.conclusions_query(self._scope.workspace_id),

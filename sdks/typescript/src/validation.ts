@@ -941,6 +941,16 @@ export const ConclusionQueryParamsSchema = z
       .min(0.0, 'distance must be at least 0.0')
       .max(1.0, 'distance must be at most 1.0')
       .optional(),
+    temporal_decay_factor: z
+      .number()
+      .min(0.0, 'temporal_decay_factor must be at least 0.0')
+      .max(1.0, 'temporal_decay_factor must be at most 1.0')
+      .optional(),
+    temporal_decay_floor: z
+      .number()
+      .gt(0.0, 'temporal_decay_floor must be greater than 0.0')
+      .max(1.0, 'temporal_decay_floor must be at most 1.0')
+      .optional(),
     filters: FilterSchema,
   })
   .strict()

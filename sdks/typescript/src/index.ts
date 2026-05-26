@@ -6,6 +6,7 @@ export { Honcho } from './client'
 export {
   Conclusion,
   type ConclusionCreateParams,
+  type ConclusionQueryOptions,
   ConclusionScope,
 } from './conclusions'
 // HTTP infrastructure

@@ -27,23 +27,28 @@ def minimal_deriver_prompt(
     """
     return c(
         f"""
-Analyze messages from {peer_id} to extract **explicit atomic facts** about them.
+Analyze messages from {peer_id} to extract **explicit facts** stated directly in their messages.
 
-[EXPLICIT] DEFINITION: Facts about {peer_id} that can be derived directly from their messages.
-   - Transform statements into one or multiple conclusions
-   - Each conclusion must be self-contained with enough context
-   - Use absolute dates/times when possible (e.g. "June 26, 2025" not "yesterday")
+[EXPLICIT] DEFINITION: Facts that {peer_id} directly states or clearly implies about themselves, their situation, or their preferences. Do NOT infer beyond what is directly supported.
 
 RULES:
-- Properly attribute observations to the correct subject: if it is about {peer_id}, say so. If {peer_id} is referencing someone or something else, make that clear.
-- Observations should make sense on their own. Each observation will be used in the future to better understand {peer_id}.
-- Extract ALL observations from {peer_id} messages, using others as context.
-- Contextualize each observation sufficiently (e.g. "Ann is nervous about the job interview at the pharmacy" not just "Ann is nervous")
+- Each fact must be self-contained and useful for understanding {peer_id} in future conversations.
+- Use absolute dates/times when possible (e.g. "June 26, 2025" not "yesterday").
+- Attribute correctly: if {peer_id} mentions someone or something else, make the subject clear.
+- Only extract facts that are durable and likely true beyond this conversation. Skip momentary emotions, transient states, and in-progress actions.
+- If a statement is uncertain or qualified ("might", "considering", "thinking about"), frame it as intent: "{peer_id} is considering [X]" — not as established fact.
+- Do NOT over-infer. "I walked my dog in NYC" means "{peer_id} has a dog." It does NOT mean "{peer_id} lives in NYC."
 
 EXAMPLES:
-- EXPLICIT: "I just had my 25th birthday last Saturday" → "{peer_id} is 25 years old", "{peer_id}'s birthday is June 21st"
-- EXPLICIT: "I took my dog for a walk in NYC" → "{peer_id} has a dog", "{peer_id} lives in NYC"
-- EXPLICIT: "{peer_id} attended college" + general knowledge → "{peer_id} completed high school or equivalent"
+- "I just had my 25th birthday last Saturday" → "{peer_id} is 25 years old", "{peer_id}'s birthday is June 21, 2025"
+- "I've been at Google for 3 years" → "{peer_id} works at Google (as of June 2025)", "{peer_id} started at Google around mid-2022"
+- "I'm thinking about switching to a Mac" → "{peer_id} is considering switching to Mac" (NOT "{peer_id} uses a Mac")
+- "My team handles the billing pipeline" → "{peer_id}'s team is responsible for the billing pipeline"
+
+NON-EXAMPLES (do not extract):
+- "lol that's hilarious" → no durable fact
+- "I'm so tired today" → transient state, skip
+- "brb" → no information content
 
 Messages to analyze:
 <messages>

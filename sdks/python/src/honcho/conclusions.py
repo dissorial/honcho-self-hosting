@@ -224,6 +224,9 @@ class ConclusionScope:
         query: str,
         top_k: int = 10,
         distance: float | None = None,
+        *,
+        temporal_decay_factor: float | None = None,
+        temporal_decay_floor: float | None = None,
     ) -> list[Conclusion]:
         """
         Semantic search for conclusions in this scope.
@@ -232,6 +235,8 @@ class ConclusionScope:
             query: The search query string
             top_k: Maximum number of results to return
             distance: Maximum cosine distance threshold (0.0-1.0)
+            temporal_decay_factor: Optional recency penalty per document age day
+            temporal_decay_floor: Optional minimum temporal multiplier
 
         Returns:
             List of matching Conclusion objects
@@ -249,6 +254,10 @@ class ConclusionScope:
         }
         if distance is not None:
             body["distance"] = distance
+        if temporal_decay_factor is not None:
+            body["temporal_decay_factor"] = temporal_decay_factor
+        if temporal_decay_floor is not None:
+            body["temporal_decay_floor"] = temporal_decay_floor
 
         data = self._honcho._http.post(
             routes.conclusions_query(self.workspace_id),

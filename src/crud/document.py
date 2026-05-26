@@ -28,6 +28,9 @@ from src.vector_store import (
 
 logger = getLogger(__name__)
 
+DOCUMENT_TEMPORAL_DECAY_FACTOR = 0.01
+DOCUMENT_TEMPORAL_DECAY_FLOOR = 0.75
+
 
 def get_all_documents(
     workspace_name: str,
@@ -275,6 +278,27 @@ async def fetch_documents_by_ids(
     return [documents[doc_id] for doc_id in document_ids if doc_id in documents]
 
 
+def document_similarity_score(
+    semantic_distance: Any,
+    *,
+    temporal_decay_factor: float,
+    temporal_decay_floor: float,
+) -> Any:
+    age_days = func.greatest(
+        0.0,
+        func.extract("epoch", func.now() - models.Document.created_at) / 86400.0,
+    )
+    temporal_penalty = func.least(
+        1.0 / temporal_decay_floor,
+        1.0 + age_days * temporal_decay_factor,
+    )
+    derivation_boost = func.greatest(
+        1.0,
+        func.ln(models.Document.times_derived + 1.0),
+    )
+    return semantic_distance * temporal_penalty / derivation_boost
+
+
 async def _query_documents_pgvector(
     db: AsyncSession,
     workspace_name: str,
@@ -284,8 +308,11 @@ async def _query_documents_pgvector(
     filters: dict[str, Any] | None,
     max_distance: float | None,
     top_k: int,
+    temporal_decay_factor: float = DOCUMENT_TEMPORAL_DECAY_FACTOR,
+    temporal_decay_floor: float = DOCUMENT_TEMPORAL_DECAY_FLOOR,
 ) -> list[models.Document]:
     """pgvector similarity search — pure DB operation."""
+    semantic_distance = models.Document.embedding.cosine_distance(embedding)
     stmt = (
         select(models.Document)
         .where(models.Document.workspace_name == workspace_name)
@@ -296,14 +323,16 @@ async def _query_documents_pgvector(
     )
 
     if max_distance is not None:
-        stmt = stmt.where(
-            models.Document.embedding.cosine_distance(embedding) <= max_distance
-        )
+        stmt = stmt.where(semantic_distance <= max_distance)
 
     stmt = apply_filter(stmt, models.Document, filters)
-    stmt = stmt.order_by(models.Document.embedding.cosine_distance(embedding)).limit(
-        top_k
-    )
+    stmt = stmt.order_by(
+        document_similarity_score(
+            semantic_distance,
+            temporal_decay_factor=temporal_decay_factor,
+            temporal_decay_floor=temporal_decay_floor,
+        )
+    ).limit(top_k)
 
     result = await db.execute(stmt)
     return list(result.scalars().all())
@@ -320,6 +349,8 @@ async def query_documents(
     max_distance: float | None = None,
     top_k: int = 5,
     embedding: list[float] | None = None,
+    temporal_decay_factor: float = DOCUMENT_TEMPORAL_DECAY_FACTOR,
+    temporal_decay_floor: float = DOCUMENT_TEMPORAL_DECAY_FLOOR,
 ) -> Sequence[models.Document]:
     """
     Query documents using semantic similarity.
@@ -342,6 +373,10 @@ async def query_documents(
     Returns:
         Sequence of matching documents
     """
+    if temporal_decay_factor < 0:
+        raise ValidationException("temporal_decay_factor must be greater than or equal to 0")
+    if temporal_decay_floor <= 0 or temporal_decay_floor > 1:
+        raise ValidationException("temporal_decay_floor must be greater than 0 and less than or equal to 1")
     # Use provided embedding or generate one
     if embedding is None:
         try:
@@ -363,6 +398,8 @@ async def query_documents(
                 filters,
                 max_distance,
                 top_k,
+                temporal_decay_factor,
+                temporal_decay_floor,
             )
         async with tracked_db("query_documents.pgvector") as managed_db:
             docs = await _query_documents_pgvector(
@@ -374,6 +411,8 @@ async def query_documents(
                 filters,
                 max_distance,
                 top_k,
+                temporal_decay_factor,
+                temporal_decay_floor,
             )
             for doc in docs:
                 managed_db.expunge(doc)

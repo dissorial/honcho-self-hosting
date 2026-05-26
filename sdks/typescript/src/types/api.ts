@@ -269,6 +269,8 @@ export interface ConclusionQueryParams {
   top_k?: number
   distance?: number
   filters?: Record<string, unknown>
+  temporal_decay_factor?: number
+  temporal_decay_floor?: number
 }
 
 // =============================================================================
