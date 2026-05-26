@@ -432,6 +432,7 @@ def mock_openai_embeddings(request: pytest.FixtureRequest):
     with (
         patch("src.embedding_client.embedding_client.embed") as mock_embed,
         patch("src.embedding_client.embedding_client.batch_embed") as mock_batch_embed,
+        patch("src.embedding_client.embedding_client.simple_batch_embed") as mock_simple_batch_embed,
     ):
         # Mock the embed method to return content-dependent embedding
         def embed_side_effect(content: str) -> list[float]:
@@ -448,9 +449,17 @@ def mock_openai_embeddings(request: pytest.FixtureRequest):
                 for text_id, resource in id_resource_dict.items()
             }
 
-        mock_batch_embed.side_effect = mock_batch_embed_func
+        async def mock_simple_batch_embed_func(texts: list[str]) -> list[list[float]]:
+            return [_content_to_embedding(text) for text in texts]
 
-        yield {"embed": mock_embed, "batch_embed": mock_batch_embed}
+        mock_batch_embed.side_effect = mock_batch_embed_func
+        mock_simple_batch_embed.side_effect = mock_simple_batch_embed_func
+
+        yield {
+            "batch_embed": mock_batch_embed,
+            "embed": mock_embed,
+            "simple_batch_embed": mock_simple_batch_embed,
+        }
 
 
 @pytest.fixture(autouse=True)
