@@ -8,11 +8,15 @@ export interface HonchoConfig {
   workspaceId: string;
 }
 
+export interface Env {
+  HONCHO_API_URL?: string;
+}
+
 /**
- * Parse configuration from request headers.
+ * Parse configuration from request headers and Worker env.
  * Throws on missing required fields so callers get clear errors.
  */
-export function parseConfig(request: Request): HonchoConfig {
+export function parseConfig(request: Request, env: Env = {}): HonchoConfig {
   const authHeader = request.headers.get("Authorization");
   const trimmedAuthHeader = authHeader?.trim();
   if (!trimmedAuthHeader?.startsWith("Bearer ")) {
@@ -37,7 +41,7 @@ export function parseConfig(request: Request): HonchoConfig {
     apiKey,
     userName,
     assistantName: request.headers.get("X-Honcho-Assistant-Name")?.trim() || "Assistant",
-    baseUrl: "https://api.honcho.dev",
+    baseUrl: env.HONCHO_API_URL?.trim() || "https://api.honcho.dev",
     workspaceId: request.headers.get("X-Honcho-Workspace-ID")?.trim() || "default",
   };
 }

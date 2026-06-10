@@ -177,19 +177,31 @@ def _extract_pattern_snippet(
 TOOLS: dict[str, dict[str, Any]] = {
     "create_observations": {
         "name": "create_observations",
-        "description": "Create observations at any level: explicit (facts), deductive (logical necessities), inductive (patterns), or contradiction (conflicting statements). Use this to record facts, logical inferences, patterns, or note when the user has said contradictory things.",
+        "description": (
+            "Create durable observations at any level: explicit (facts), deductive "
+            "(logical necessities), inductive (patterns), or contradiction (conflicting "
+            "statements). Use this to record long-lived facts, logical inferences, and "
+            "actionable patterns. Do not record temporary task status, requests for help, "
+            "open questions, uncertain plans, or duplicate observations."
+        ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "observations": {
                     "type": "array",
-                    "description": "List of observations to create",
+                    "description": (
+                        "List of durable, deduplicated observations to create. Skip candidates "
+                        "that will likely confuse a future agent after the current task is over."
+                    ),
                     "items": {
                         "type": "object",
                         "properties": {
                             "content": {
                                 "type": "string",
-                                "description": "The observation content",
+                                "description": (
+                                    "The observation content. It should be self-contained, durable, "
+                                    "and useful to a future assistant."
+                                ),
                             },
                             "level": {
                                 "type": "string",

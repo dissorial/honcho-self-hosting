@@ -1,5 +1,6 @@
 name = "honcho-mcp"
 main = "src/index.ts"
+account_id = "22acf7ede77db73f50df7b1a764fa00b"
 compatibility_date = "2024-12-09"
 compatibility_flags = ["nodejs_compat"]
 
@@ -8,6 +9,15 @@ name = "honcho-mcp"
 
 [env.staging]
 name = "honcho-mcp-staging"
+
+[vars]
+HONCHO_API_URL = "https://honcho-self-hosting-erikz.fly.dev"
+
+[env.production.vars]
+HONCHO_API_URL = "https://honcho-self-hosting-erikz.fly.dev"
+
+[env.staging.vars]
+HONCHO_API_URL = "https://honcho-self-hosting-erikz.fly.dev"
 
 [observability.logs]
 enabled = true
